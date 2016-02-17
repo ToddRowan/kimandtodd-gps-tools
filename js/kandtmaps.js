@@ -283,7 +283,8 @@ function generateInfoWindowContent(markers) {
 	var cnt = '<div id="clusterInfoWindow">';
 	var brk = Math.ceil((markers.length)/2) - 1;
 	for (var x = 0; x<markers.length; x++) {
-		cnt += "<img src=\"" + markers[x].getIcon().url + "\" style=\"height:70px;width:70px;padding-right:3px;cursor:pointer;\">";
+		var title =  markers[x].getTitle();
+		cnt += "<img src=\"" + markers[x].getIcon().url + "\" style=\"height:70px;width:70px;padding-right:3px;cursor:pointer;\" alt=\"" + title + "\" title=\"" + title + "\">";
 		
 		if (markers.length > 7 && x === brk) {
 			cnt += "<br>";
