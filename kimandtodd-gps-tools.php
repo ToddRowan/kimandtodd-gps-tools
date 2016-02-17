@@ -3,7 +3,7 @@
 Plugin Name: Kim and Todd's GPS tools
 Plugin URI: http://www.kimandtodd.com
 Description: Processes GPX data and matches it to photo timestamps to attempt to determine a location for each.
-Version: 0.1
+Version: 0.2
 Author: Todd Rowan
 Author URI: http://www.kimandtodd.com
 License: GPL2
@@ -372,9 +372,11 @@ function add_maps_on_single()
 $gmapsUrl = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDocc4DVgK_RSPonor3LxJxkytqznBddFo&sensor=false";
 $kandtadminscript = plugins_url("js/kandtmapsadmin.js", __FILE__);
 $kandtsinglescript = plugins_url("js/kandtmaps.js", __FILE__);
+$kandtclusterer = plugins_url("js/markerclusterer_packed.js", __FILE__);
 wp_register_script("gmaps", $gmapsUrl);
+wp_register_script("markerclusterer", $kandtclusterer, array("gmaps"));
 wp_register_script('kandtmapsadmin', $kandtadminscript, array("gmaps", "jquery"));
-wp_register_script('kandtmapssingle', $kandtsinglescript, array("gmaps","jquery"));
+wp_register_script('kandtmapssingle', $kandtsinglescript, array("jquery","markerclusterer"), '0_2');
 
 add_action( 'wp_enqueue_scripts', 'add_maps_on_single' );
 

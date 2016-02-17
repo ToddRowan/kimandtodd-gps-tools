@@ -5,7 +5,9 @@ var toId, mapDataStore =
             map: null,
             locations: new Array(),
             cssHeight: 0,
-            cssWidth: 0
+            cssWidth: 0,
+            clusterer: null,
+			infoWindow: null
         };
 
 jQuery(document).ready(
@@ -42,6 +44,16 @@ jQuery(document).ready(
                     clearTimeout(toId);
                     toId = setTimeout(doMapResize, 100);    
             });
+			
+			// This is for when too many items are clustered in one place at max zoom.			
+			jQuery('#galmap').on('click', '#clusterInfoWindow img', function(e){
+				var icn = e.target.src;
+                var arr = icn.split("/");
+                var img = arr[arr.length-1];
+                var tgt = "img[src$='"+img+"']";
+                var $a = jQuery(tgt).parent();
+                $a.click();				
+			});
         }
    );
    
@@ -57,6 +69,11 @@ function initMap()
     {
         var mapOptions = getMapOptions(mapDataStore.locations);
         mapDataStore.map = new google.maps.Map(jQuery("#galmap")[0],mapOptions);
+		mapDataStore.infoWindow = new google.maps.InfoWindow(
+          {
+              content: '',
+              size: new google.maps.Size(50, 50),
+          });
         
         var bounds = new google.maps.LatLngBounds();            
         
@@ -74,18 +91,18 @@ function initMap()
                 var icn = this.icon.url;
                 var arr = icn.split("/");
                 var img = arr[arr.length-1];
-                var tgt = "img[src$='"+img+"']"
+                var tgt = "img[src$='"+img+"']";
                 var $a = jQuery(tgt).parent();
                 $a.click();
             });
 
-            //addMarkerEventListeners(mrkr);
-            mapDataStore.markers[mapDataStore.locations[inx].title] = mrkr;        
+            mapDataStore.markers[mapDataStore.locations[inx].title] = mrkr;
         }  
     
         if (!bounds.isEmpty())
             mapDataStore.map.fitBounds(bounds);  
         addCloseButton(mapDataStore.map);
+		setClusters();
     }
 }
 
@@ -223,4 +240,92 @@ function mapViewEvent()
         
         mapView = true;
     }
+}
+
+function handleClusterClick(cluster) {
+	var z = mapDataStore.map.getZoom();	
+	if (z!==21) { // change this to max zoom level for map type.
+		var visible = window.getVisibleClusters();
+		if (visible.length === 1) {
+			// zoom to the bounds of that cluster
+			//var clstrs = window.getVisibleClusters();
+			var clster = visible[0];
+			mapDataStore.map.fitBounds(clster.bounds_); // this is prob brittle, but what choice do I have?
+			if (mapDataStore.map.getZoom() === 21) {
+				var listenRef = google.maps.event.addListener(mapDataStore.clusterer, 'clusteringend', 
+				function(){
+					var viz = window.getVisibleClusters();
+					if (viz.length === 1) {
+						showClusterInfoWindow(viz[0], listenRef);
+					}		
+				});
+			}
+		}
+		else {
+			mapDataStore.map.setZoom(z+1);
+		}		
+	}
+	else {
+		showClusterInfoWindow(cluster);
+	}	
+}
+
+function showClusterInfoWindow(cluster, listenRef) {
+	mapDataStore.infoWindow.setPosition(cluster.getCenter());
+	mapDataStore.infoWindow.setContent(generateInfoWindowContent(cluster.getMarkers()));
+	mapDataStore.infoWindow.open(mapDataStore.map);
+	if (listenRef) {
+		google.maps.event.removeListener(listenRef);
+	}
+}
+
+function generateInfoWindowContent(markers) {
+	var cnt = '<div id="clusterInfoWindow">';
+	var brk = Math.ceil((markers.length)/2) - 1;
+	for (var x = 0; x<markers.length; x++) {
+		cnt += "<img src=\"" + markers[x].getIcon().url + "\" style=\"height:70px;width:70px;padding-right:3px;cursor:pointer;\">";
+		
+		if (markers.length > 7 && x === brk) {
+			cnt += "<br>";
+		}
+	}
+	
+	return cnt + "</div>";
+}
+
+function countVisibleClusters() {
+	var clstrs = window.getVisibleClusters(); // All visible markers are also clusterers, but any with a marker count less than minimumClusterSize is not rendered as a cluster and doesn't throw cluster events. 
+	
+	return clstrs.length;
+}
+
+function getVisibleClusters() {
+	var bnds = mapDataStore.map.getBounds();
+	var clstrs = mapDataStore.clusterer.getClusters(); // All visible markers are also clusterers, but any with only one marker is not visible as a cluster. 
+	var visClusters =[];
+	for (var x = 0; x < clstrs.length; x++) {
+		if (bnds.contains(clstrs[x].getCenter())) {
+			visClusters.push(clstrs[x]);
+		}
+	}
+
+	return visClusters;
+}
+
+function setClusters() {
+	var iconStyles = [{
+		url: "/wordpress/wp-content/plugins/kimandtodd-gps-tools/img/camera_50.png",
+		width: 50,
+		height: 44,
+		textColor: 'white',
+		textSize: 13,
+		anchorText: [4,0]
+	}];
+	var clusterOpts = {
+		styles: iconStyles,
+		zoomOnClick: false,
+		gridSize: 50
+	};
+	mapDataStore.clusterer = new MarkerClusterer(mapDataStore.map, mapDataStore.markers, clusterOpts);
+	google.maps.event.addListener(mapDataStore.clusterer, 'clusterclick', window.handleClusterClick);
 }
