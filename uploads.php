@@ -1,6 +1,7 @@
 <?php
 define ('GPX_START', 'gpx_start_time');
 define ('GPX_END', 'gpx_end_time');
+define ('GPX_MIME_TYPE', 'application/xml');
 define ('EXIF_CREATE_TIME', 'photo_exif_create_time');
 define ('EXIF_GPS_VALUES', 'photo_exif_gps_data');
 
@@ -13,7 +14,7 @@ function process_gpx($post_id)
 {    
     $p = get_post($post_id);
     // figure out if the post is a gpx file
-    if ($p->post_mime_type != 'application/gpx+xml')
+    if ($p->post_mime_type != GPX_MIME_TYPE)
         return;
     
     // if so, find the file and do the processing
@@ -27,7 +28,7 @@ function process_gpx($post_id)
 function permit_gpx_upload ( $existing_mimes=array() ) 
 {
   // add your extension to the array
-  $existing_mimes['gpx'] = 'application/gpx+xml';
+  $existing_mimes['gpx'] = GPX_MIME_TYPE;
 
   return $existing_mimes;
 }
