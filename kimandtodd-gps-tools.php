@@ -3,7 +3,7 @@
 Plugin Name: Kim and Todd's GPS tools
 Plugin URI: http://www.kimandtodd.com
 Description: Processes GPX data and matches it to photo timestamps to attempt to determine a location for each.
-Version: 0.2
+Version: 0.3
 Author: Todd Rowan
 Author URI: http://www.kimandtodd.com
 License: GPL2
