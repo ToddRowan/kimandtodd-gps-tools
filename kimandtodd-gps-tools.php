@@ -369,7 +369,7 @@ function add_maps_on_single()
 }
 
 // let's register some scripts:
-$gmapsUrl = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDocc4DVgK_RSPonor3LxJxkytqznBddFo&sensor=false";
+$gmapsUrl = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA3yDvin7u69cVme-npZwy7aZHTPeNAk5Q&sensor=false";
 $kandtadminscript = plugins_url("js/kandtmapsadmin.js", __FILE__);
 $kandtsinglescript = plugins_url("js/kandtmaps.js", __FILE__);
 $kandtclusterer = plugins_url("js/markerclusterer_packed.js", __FILE__);
